@@ -1,6 +1,7 @@
 import { Client, Collection, Message } from "discord.js";
 import { inject, injectable } from "inversify";
 import { Logger } from "../helpers/Logger";
+import { CommandHandler } from "../services/Command-handler";
 import { MessageResponder } from "../services/Message-responder";
 import { FreyaClient } from "../structure/FreyaClient";
 import { Global } from "./Global";
@@ -22,6 +23,7 @@ export class Bot {
   }
 
   public startUp(): Promise<string> {
+    CommandHandler(this)
     this.client.on('message', (message: Message) => {
       if (message.author.bot) {
         Logger.log('Ignoring bot message!')
