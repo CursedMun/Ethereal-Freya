@@ -5,7 +5,7 @@ import { instance, mock } from "ts-mockito";
 import { Bot } from "../../src/dependecy/FreyaClient";
 import { Global } from "../../src/dependecy/Global";
 import container from "../../src/dependecy/Inversify.config";
-import { FreyaClient } from "../../src/structure/FreyaClient";
+import { FreyaClient } from "../../src/_structure/FreyaClient";
 
 describe('Bot', () => {
     let discordMock: FreyaClient;

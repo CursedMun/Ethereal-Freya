@@ -4,7 +4,7 @@ import { join } from "path";
 import "reflect-metadata";
 import { MessageResponder } from "../services/Message-responder";
 import { RegexService } from "../services/Regex-service";
-import { FreyaClient } from "../structure/FreyaClient";
+import { FreyaClient } from "../_structure/FreyaClient";
 import { Bot } from "./FreyaClient";
 import { Global } from "./Global";
 let container = new Container();
