@@ -3,6 +3,8 @@ import { ArgumentType } from "./base";
 
 export class BooleanArgumentType extends ArgumentType {
   readonly Client: FreyaClient;
+  truthy: Set<string>;
+  falsy: Set<string>;
   constructor(client: FreyaClient) {
     super(client, "boolean");
     this.truthy = new Set([

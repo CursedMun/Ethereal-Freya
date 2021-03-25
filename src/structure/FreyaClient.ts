@@ -12,6 +12,7 @@ export class FreyaClient extends Client{
   public Registry: FreyaRegistry
 	public Dispatcher: FreyaDispatcher
 	public options: FreyaClientOptions
+	public Provider: SettingProvider
 	constructor(options: FreyaClientOptions) {
     valideteInfo()
 

@@ -458,16 +458,16 @@ export class FreyaRegistry {
 	 * @param {Message} [message] - The message to check usability against
 	 * @return {Command[]} All commands that are found
 	 */
-	findCommands(searchString = null, exact = false, message = null) {
+	findCommands(searchString = null, exact = false, message = null):Command[] {
 		if(!searchString) {
 			return message ?
-				Array.from(this.commands.filter(cmd => cmd.isUsable(message)).values()) :
-				Array.from(this.commands);
+				Array.from(this.Commands.filter(cmd => cmd.isUsable(message)).values()) :
+				Array.from(this.Commands);
 		}
 
 		// Find all matches
 		const lcSearch = searchString.toLowerCase();
-		const matchedCommands = Array.from(this.commands.filter(
+		const matchedCommands = Array.from(this.Commands.filter(
 			exact ? commandFilterExact(lcSearch) : commandFilterInexact(lcSearch)
 		).values());
 		if(exact) return matchedCommands;
