@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
 require("mocha");
@@ -30,21 +21,21 @@ describe('MessageResponder', () => {
         setMessageContents();
         service = new Message_responder_1.MessageResponder(mockedPingFinderInstance);
     });
-    it('should reply', () => __awaiter(void 0, void 0, void 0, function* () {
+    it('should reply', async () => {
         whenIsPingThenReturn(true);
-        yield service.handle(mockedMessageInstance);
+        await service.handle(mockedMessageInstance);
         ts_mockito_1.verify(mockedMessageClass.reply('pong!')).once();
-    }));
-    it('should not reply', () => __awaiter(void 0, void 0, void 0, function* () {
+    });
+    it('should not reply', async () => {
         whenIsPingThenReturn(false);
-        yield service.handle(mockedMessageInstance).then(() => {
+        await service.handle(mockedMessageInstance).then(() => {
             // Successful promise is unexpected, so we fail the test
             chai_1.expect.fail('Unexpected promise');
         }).catch(() => {
             // Rejected promise is expected, so nothing happens here
         });
         ts_mockito_1.verify(mockedMessageClass.reply('pong!')).never();
-    }));
+    });
     function setMessageContents() {
         mockedMessageInstance.content = "Non-empty string";
     }

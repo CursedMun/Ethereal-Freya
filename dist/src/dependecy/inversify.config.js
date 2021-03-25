@@ -6,7 +6,7 @@ const path_1 = require("path");
 require("reflect-metadata");
 const Message_responder_1 = require("../services/Message-responder");
 const Regex_service_1 = require("../services/Regex-service");
-const FreyaClient_1 = require("../structure/FreyaClient");
+const FreyaClient_1 = require("../_structure/FreyaClient");
 const FreyaClient_2 = require("./FreyaClient");
 const Global_1 = require("./Global");
 let container = new inversify_1.Container();

@@ -1,3 +1,5 @@
+import { PermissionString } from "discord.js";
+
 const isConstructorProxyHandler = { construct() { return Object.prototype; } };
 
 export function escapeRegex(str) {
@@ -33,7 +35,7 @@ export function paginate(items, page = 1, pageLength = 10) {
 	};
 }
 
-export const permissions = {
+export const permissions:{[key: string]: string} = {
 	ADMINISTRATOR: 'Administrator',
 	VIEW_AUDIT_LOG: 'View audit log',
 	MANAGE_GUILD: 'Manage server',

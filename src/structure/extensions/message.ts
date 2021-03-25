@@ -1,13 +1,17 @@
 import { oneLine } from "common-tags";
 import {
+  APIMessage,
   DMChannel,
   Message,
+  MessageAdditions,
+  MessageEmbed,
   MessageOptions,
   NewsChannel,
   StringResolvable,
   Structures,
   TextChannel,
   User,
+  Util
 } from "discord.js";
 import { Command } from "../commands/base";
 import { CommandFormatError } from "../errors/command-format";
@@ -15,9 +19,9 @@ import { FriendlyError } from "../errors/friendly";
 import { FreyaClient } from "../FreyaClient";
 import { FreyaGuild } from "./guild";
 
-class FreyaMessage extends Message {
+export class FreyaMessage extends Message {
   IsCommand: boolean;
-  Command?: Command;
+  Command: Command;
   ArgString?: string;
   PatternMatches?: string[];
   Responses?: Object;
@@ -51,7 +55,7 @@ class FreyaMessage extends Message {
   }
   usage(
     argString: string,
-    prefix: string,
+    prefix: string | undefined | null, 
     user: User = this.Client.user
   ): string {
     if (typeof prefix === "undefined") {
@@ -77,21 +81,21 @@ class FreyaMessage extends Message {
    * @return {string|string[]}
    * @see {@link Command#run}
    */
-  parseArgs(): string | string[] {
-    switch (this.Command.argsType) {
+  public parseArgs(): string | string[] {
+    switch (this.Command.ArgsType) {
       case "single":
         return this.ArgString.trim().replace(
-          this.Command.argsSingleQuotes ? /^("|')([^]*)\1$/g : /^(")([^]*)"$/g,
+          this.Command.ArgsSingleQuotes ? /^("|')([^]*)\1$/g : /^(")([^]*)"$/g,
           "$2"
         );
       case "multiple":
-        return this.constructor.parseArgs(
+        return FreyaMessage.parseArgs(
           this.ArgString,
-          this.Command.argsCount,
-          this.Command.argsSingleQuotes
+          this.Command.ArgsCount,
+          this.Command.ArgsSingleQuotes
         );
       default:
-        throw new RangeError(`Unknown argsType "${this.Command.argsType}".`);
+        throw new RangeError(`Unknown argsType "${this.Command.ArgsType}".`);
     }
   }
 
@@ -118,14 +122,14 @@ class FreyaMessage extends Message {
     }
 
     // Make sure the command is usable in this context
-    if (this.Command.guildOnly && !this.guild) {
+    if (this.Command.GuildOnly && !this.guild) {
       this.Client.emit("commandBlock", this, "guildOnly");
       return this.Command.onBlock(this, "guildOnly");
     }
 
     // Ensure the channel is a NSFW one if required
     if (
-      this.Command.nsfw &&
+      this.Command.Nsfw &&
       this.channel.type == "text" &&
       !this.channel.nsfw
     ) {
@@ -144,10 +148,10 @@ class FreyaMessage extends Message {
     }
 
     // Ensure the client user has the required permissions
-    if (this.channel.type === "text" && this.Command.clientPermissions) {
+    if (this.channel.type === "text" && this.Command.ClientPermissions) {
       const missing = this.channel
         .permissionsFor(this.Client.user)
-        .missing(this.Command.clientPermissions);
+        .missing(this.Command.ClientPermissions);
       if (missing.length > 0) {
         const data = { missing };
         this.Client.emit("commandBlock", this, "clientPermissions", data);
@@ -157,10 +161,10 @@ class FreyaMessage extends Message {
 
     // Throttle the command
     const throttle = this.Command.throttle(this.author.id);
-    if (throttle && throttle.usages + 1 > this.Command.throttling.usages) {
+    if (throttle && throttle.usages + 1 > this.Command.Throttling.usages) {
       const remaining =
         (throttle.start +
-          this.Command.throttling.duration * 1000 -
+          this.Command.Throttling.duration * 1000 -
           Date.now()) /
         1000;
       const data = { throttle, remaining };
@@ -171,18 +175,18 @@ class FreyaMessage extends Message {
     // Figure out the command arguments
     let args: string| string[] = this.PatternMatches;
     let collResult = null;
-    if (!args && this.Command.argsCollector) {
-      const collArgs = this.Command.argsCollector.args;
+    if (!args && this.Command.ArgsCollector) {
+      const collArgs = this.Command.ArgsCollector.args;
       const count = collArgs[collArgs.length - 1].infinite
         ? Infinity
         : collArgs.length;
-      const provided = this.constructor.parseArgs(
+      const provided = FreyaMessage.parseArgs(
         this.ArgString.trim(),
         count,
-        this.Command.argsSingleQuotes
+        this.Command.ArgsSingleQuotes
       );
 
-      collResult = await this.Command.argsCollector.obtain(this, provided);
+      collResult = await this.Command.ArgsCollector.obtain(this, provided);
       if (collResult.cancelled) {
         if (
           collResult.prompts.length === 0 ||
@@ -211,7 +215,7 @@ class FreyaMessage extends Message {
     try {
       this.Client.emit(
         "debug",
-        `Running command ${this.Command.groupID}:${this.Command.memberName}.`
+        `Running command ${this.Command.GroupID}:${this.Command.MemberName}.`
       );
       const promise = this.Command.run(this, args, fromPattern, collResult);
       this.Client.emit(
@@ -233,7 +237,7 @@ class FreyaMessage extends Message {
         )
       ) {
         throw new TypeError(oneLine`
-						Command ${this.Command.name}'s run() resolved with an unknown type
+						Command ${this.Command.Name}'s run() resolved with an unknown type
 						(${
               retVal !== null
                 ? retVal && retVal.constructor
@@ -270,7 +274,7 @@ class FreyaMessage extends Message {
    * @return {Message|Message[]}
    * @private
    */
-  respond({ type = "reply", content, options, lang, fromEdit = false }) {
+  private async respond({ type = "reply", content, options, lang = null, fromEdit = false }: {[key: string]: any}): Promise<Message | Message[]> {
     const shouldEdit = this.Responses && !fromEdit;
     if (shouldEdit) {
       if (options && options.split && typeof options.split !== "object")
@@ -281,13 +285,14 @@ class FreyaMessage extends Message {
     if (type !== "direct") {
       if (
         this.guild &&
+        this.channel.type == "text" &&
         !this.channel.permissionsFor(this.Client.user).has("SEND_MESSAGES")
       ) {
         type = "direct";
       }
     }
 
-    content = resolveString(content);
+    content = Util.resolveString(content);
 
     switch (type) {
       case "plain":
@@ -316,9 +321,8 @@ class FreyaMessage extends Message {
             options.split.prepend = `\`\`\`${lang || ""}\n`;
           if (!options.split.append) options.split.append = "\n```";
         }
-        content = `\`\`\`${lang || ""}\n${escapeMarkdown(
-          content,
-          true
+        content = `\`\`\`${lang || ""}\n${Util.escapeMarkdown(
+          content
         )}\n\`\`\``;
         return this.editCurrentResponse(channelIDOrDM(this.channel), {
           type,
@@ -330,18 +334,11 @@ class FreyaMessage extends Message {
     }
   }
 
-  /**
-   * Edits a response to the command message
-   * @param {Message|Message[]} response - The response message(s) to edit
-   * @param {Object} [options] - Options for the response
-   * @return {Promise<Message|Message[]>}
-   * @private
-   */
-  editResponse(response, { type, content, options }) {
+  private editResponse(response, { type, content, options }): Promise<Message|Message[]> {
     if (!response)
-      return this.respond({ type, content, options, fromEdit: true });
+      return this.respond({ type, content, options,lang: null, fromEdit: true });
     if (options && options.split)
-      content = splitMessage(content, options.split);
+      content = Util.splitMessage(content, options.split);
 
     let prepend = "";
     if (type === "reply") prepend = `${this.author}, `;
@@ -373,14 +370,7 @@ class FreyaMessage extends Message {
     }
   }
 
-  /**
-   * Edits the current response
-   * @param {string} id - The ID of the channel the response is in ("DM" for direct messages)
-   * @param {Object} [options] - Options for the response
-   * @return {Promise<Message|Message[]>}
-   * @private
-   */
-  editCurrentResponse(id, options) {
+  private editCurrentResponse(id: string, options:any): Promise<Message|Message[]> {
     if (typeof this.Responses[id] === "undefined") this.Responses[id] = [];
     if (typeof this.ResponsePositions[id] === "undefined")
       this.ResponsePositions[id] = -1;
@@ -391,13 +381,7 @@ class FreyaMessage extends Message {
     );
   }
 
-  /**
-   * Responds with a plain message
-   * @param {StringResolvable} content - Content for the message
-   * @param {MessageOptions} [options] - Options for the message
-   * @return {Promise<Message|Message[]>}
-   */
-  say(content, options) {
+  say(content: StringResolvable, options: MessageOptions):Promise<Message|Message[]> {
     if (
       !options &&
       typeof content === "object" &&
@@ -408,17 +392,8 @@ class FreyaMessage extends Message {
     }
     return this.respond({ type: "plain", content, options });
   }
-
-  /**
-   * Responds with a reply message
-   * @param {StringResolvable} content - Content for the message
-   * @param {MessageOptions} [options] - Options for the message
-   * @return {Promise<Message|Message[]>}
-   */
-  reply(
-    content: StringResolvable,
-    options?: MessageOptions
-  ): Promise<Message | Message[]> {
+  
+  reply(content: StringResolvable | APIMessage = '', options: MessageOptions | MessageAdditions = {}): Promise<Message | Message[]>{
     if (
       !options &&
       typeof content === "object" &&
@@ -429,14 +404,7 @@ class FreyaMessage extends Message {
     }
     return this.respond({ type: "reply", content, options });
   }
-
-  /**
-   * Responds with a direct message
-   * @param {StringResolvable} content - Content for the message
-   * @param {MessageOptions} [options] - Options for the message
-   * @return {Promise<Message|Message[]>}
-   */
-  direct(content, options) {
+  direct(content: StringResolvable, options: MessageOptions): Promise<Message | Message[]> {
     if (
       !options &&
       typeof content === "object" &&
@@ -448,14 +416,7 @@ class FreyaMessage extends Message {
     return this.respond({ type: "direct", content, options });
   }
 
-  /**
-   * Responds with a code message
-   * @param {string} lang - Language for the code block
-   * @param {StringResolvable} content - Content for the message
-   * @param {MessageOptions} [options] - Options for the message
-   * @return {Promise<Message|Message[]>}
-   */
-  code(lang, content, options) {
+  code(lang: string, content: StringResolvable, options: MessageOptions): Promise<Message | Message[]> {
     if (
       !options &&
       typeof content === "object" &&
@@ -469,38 +430,19 @@ class FreyaMessage extends Message {
     return this.respond({ type: "code", content, options });
   }
 
-  /**
-   * Responds with an embed
-   * @param {RichEmbed|Object} embed - Embed to send
-   * @param {StringResolvable} [content] - Content for the message
-   * @param {MessageOptions} [options] - Options for the message
-   * @return {Promise<Message|Message[]>}
-   */
-  embed(embed, content = "", options) {
+  embed(embed: MessageEmbed | object, content: StringResolvable = "", options: MessageOptions): Promise<Message | Message[]> {
     if (typeof options !== "object") options = {};
     options.embed = embed;
     return this.respond({ type: "plain", content, options });
   }
 
-  /**
-   * Responds with a mention + embed
-   * @param {RichEmbed|Object} embed - Embed to send
-   * @param {StringResolvable} [content] - Content for the message
-   * @param {MessageOptions} [options] - Options for the message
-   * @return {Promise<Message|Message[]>}
-   */
-  replyEmbed(embed, content = "", options) {
+  replyEmbed(embed: MessageEmbed | object, content: StringResolvable = "", options: MessageOptions): Promise<Message | Message[]> {
     if (typeof options !== "object") options = {};
     options.embed = embed;
     return this.respond({ type: "reply", content, options });
   }
 
-  /**
-   * Finalizes the command message by setting the responses and deleting any remaining prior ones
-   * @param {?Array<Message|Message[]>} responses - Responses to the message
-   * @private
-   */
-  finalize(responses) {
+  private finalize(responses: Array<Message | Message[]> | null) {
     if (this.Responses) this.deleteRemainingResponses();
     this.Responses = {};
     this.ResponsePositions = {};
@@ -523,11 +465,7 @@ class FreyaMessage extends Message {
     }
   }
 
-  /**
-   * Deletes any prior responses that haven't been updated
-   * @private
-   */
-  deleteRemainingResponses() {
+  private deleteRemainingResponses() {
     for (const id of Object.keys(this.Responses)) {
       const responses = this.Responses[id];
       for (let i = this.ResponsePositions[id] + 1; i < responses.length; i++) {
@@ -541,15 +479,7 @@ class FreyaMessage extends Message {
     }
   }
 
-  /**
-   * Parses an argument string into an array of arguments
-   * @param {string} argString - The argument string to parse
-   * @param {number} [argCount] - The number of arguments to extract from the string
-   * @param {boolean} [allowSingleQuote=true] - Whether or not single quotes should be allowed to wrap arguments,
-   * in addition to double quotes
-   * @return {string[]} The array of arguments
-   */
-  static parseArgs(argString, argCount, allowSingleQuote = true) {
+  public static parseArgs(argString: string, argCount: number, allowSingleQuote: boolean = true): string[] {
     const argStringModified = removeSmartQuotes(argString, allowSingleQuote);
     const re = allowSingleQuote
       ? /\s*(?:("|')([^]*?)\1|(\S+))\s*/g
