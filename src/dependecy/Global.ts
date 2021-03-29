@@ -1,5 +1,5 @@
 export const Global = {
-    Bot: Symbol("Bot"),
+    Client: Symbol("Client"),
     FreyaClient: Symbol("FreyaClient"),
     Token: Symbol("Token"),
     Commands: Symbol("Commands"),

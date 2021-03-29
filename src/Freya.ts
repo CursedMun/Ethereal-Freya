@@ -1,9 +1,9 @@
  // Recommended way of loading dotenv
-import { Bot } from "./dependecy/FreyaClient";
+import { Client } from "./dependecy/Client";
 import container from "./dependecy/Inversify.config";
 import { Global } from "./dependecy/Global";
-let bot = container.get<Bot>(Global.Bot);
-bot.startUp().then(() => {
+let client = container.get<Client>(Global.Client);
+client.startUp().then(() => {
     console.log('Logged in!')
 }).catch((error) => {
     console.log('Oh no! ', error)

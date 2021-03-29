@@ -28,6 +28,7 @@
     "dotenv": "^6.2.0",
     "glob": "^7.1.6",
     "inversify": "^5.0.5",
+    "is-promise": "^4.0.0",
     "reflect-metadata": "^0.1.13"
   }
 }
