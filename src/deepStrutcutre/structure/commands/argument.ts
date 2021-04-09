@@ -1,8 +1,9 @@
+
 import { Message } from "discord.js";
 import { FreyaMessage } from "../extensions/message";
 import { FreyaClient } from "../FreyaClient";
 import { ArgumentInfo, ArgumentDefault, ArgumentResult } from "../Interfaces/Interfaces";
-import { ArgumentType } from "../types/base";
+import ArgumentType from "../types/base";
 
 const { escapeMarkdown } = require('discord.js');
 const { oneLine, stripIndents } = require('common-tags');
@@ -57,8 +58,8 @@ export class Argument {
         if (this.infinite) return this.obtainInfinite(msg, val, promptLimit);
 
         const wait = this.wait > 0 && this.wait !== Infinity ? this.wait * 1000 : undefined;
-        const prompts = [];
-        const answers = [];
+        const prompts: (Message | Message[])[] = [];
+        const answers: (Message)[] = [];
         let valid = !empty ? await this.validate(val, msg) : false;
 
         while (!valid || typeof valid === 'string') {
@@ -66,8 +67,8 @@ export class Argument {
                 return {
                     value: null,
                     cancelled: 'promptLimit',
-                    prompts,
-                    answers
+                    prompts: [],
+                    answers: [],
                 };
             }
 
@@ -88,14 +89,14 @@ export class Argument {
 
             // Make sure they actually answered
             if (responses && responses.size === 1) {
-                answers.push(responses.first());
+                answers.push(responses.first()!);
                 val = answers[answers.length - 1]!.content;
             } else {
                 return {
                     value: null,
                     cancelled: 'time',
                     prompts,
-                    answers
+                    answers: []
                 };
             }
             if (val.toLowerCase() === 'cancel') {
@@ -120,11 +121,11 @@ export class Argument {
         };
     }
 
-    private async obtainInfinite(msg: FreyaMessage, vals: string[], promptLimit: number = Infinity): Promise<ArgumentResult> {
+    private async obtainInfinite(msg: FreyaMessage, vals: string[] | string, promptLimit: number = Infinity): Promise<ArgumentResult> {
         const wait = this.wait > 0 && this.wait !== Infinity ? this.wait * 1000 : undefined;
         const results = [];
         const prompts = [];
-        const answers = [];
+        const answers: (Message)[] = [];
         let currentVal = 0;
 
         while (true) {
@@ -139,7 +140,7 @@ export class Argument {
                         value: null,
                         cancelled: 'promptLimit',
                         prompts,
-                        answers
+                        answers: []
                     };
 
                 if (val) {
@@ -170,22 +171,21 @@ export class Argument {
                     time: wait
                 });
                 if (responses && responses.size === 1) {
-                    answers.push(responses.first());
+                    answers.push(responses.first()!);
                     val = answers[answers.length - 1]!.content;
                 } else {
                     return {
                         value: null,
                         cancelled: 'time',
                         prompts,
-                        answers
+                        answers: []
                     };
                 }
-                if (!val) return;
                 const lc = val.toLowerCase();
                 if (lc === 'finish') {
                     return {
                         value: results.length > 0 ? results : null,
-                        cancelled: this.default ? null : results.length > 0 ? undefined : 'user',
+                        cancelled: this.default ? undefined : results.length > 0 ? undefined : 'user',
                         prompts,
                         answers
                     };
@@ -209,7 +209,7 @@ export class Argument {
                 if (currentVal === vals.length) {
                     return {
                         value: results,
-                        cancelled: null,
+                        cancelled: undefined,
                         prompts,
                         answers
                     };
@@ -217,23 +217,23 @@ export class Argument {
             }
         }
     }
-    validate(val: string, originalMsg: FreyaMessage, currentMsg: FreyaMessage | null = originalMsg): boolean | string | Promise<boolean | string> {
+    validate(val: string, originalMsg: FreyaMessage | Message, currentMsg: FreyaMessage | Message | null = originalMsg): boolean | string | Promise<boolean | string> {
         const valid = this.validator ?
             this.validator(val, originalMsg, this, currentMsg) :
-            this.type?.validate(val, originalMsg, this, currentMsg);
+            this.type?.validate(val, originalMsg, this, currentMsg!);
         if (!valid || typeof valid === 'string') return this.error || valid;
         if (isPromise(valid)) return valid.then((vld: any) => !vld || typeof vld === 'string' ? this.error || vld : vld);
         return valid;
     }
 
-    public parse(val: string, originalMsg: FreyaMessage, currentMsg: FreyaMessage | null = originalMsg): any | Promise<any> {
+    public parse(val: string, originalMsg: FreyaMessage | Message, currentMsg: FreyaMessage | Message | null = originalMsg): any | Promise<any> {
         if (this.parser) return this.parser(val, originalMsg, this, currentMsg);
-        return this.type?.parse(val, originalMsg, this, currentMsg);
+        return this.type?.parse(val, originalMsg, this, currentMsg!);
     }
 
-    public isEmpty(val: string, originalMsg: FreyaMessage, currentMsg: FreyaMessage | null = originalMsg): boolean {
+    public isEmpty(val: string, originalMsg: FreyaMessage | Message, currentMsg: FreyaMessage | Message | null = originalMsg): boolean {
         if (this.emptyChecker) return this.emptyChecker(val, originalMsg, this, currentMsg);
-        if (this.type) return this.type.isEmpty(val, originalMsg, this, currentMsg);
+        if (this.type) return this.type.isEmpty(val, originalMsg, this, currentMsg!);
         if (Array.isArray(val)) return val.length === 0;
         return !val;
     }

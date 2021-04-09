@@ -3,11 +3,11 @@ import { FreyaClient } from "../FreyaClient";
 import { Command } from "./base";
 
 export class CommandGroup {
-    id: string;
-    name: string;
-    commands: Collection<string, Command>;
-    guarded: boolean;
-    _globalEnabled: boolean;
+    public id: string;
+    public name: string;
+    public commands: Collection<string, Command>;
+    public guarded: boolean;
+    public _globalEnabled: boolean;
     readonly Client: FreyaClient;
     /**
      * @param {CommandoClient} client - The client the group is for

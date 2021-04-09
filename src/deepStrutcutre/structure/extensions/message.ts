@@ -56,7 +56,7 @@ export class FreyaMessage extends Message {
   usage(
     argString: string,
     prefix: string | undefined | null, 
-    user: User = this.Client.user
+    user: User | null = this.Client.user
   ): string {
     if (typeof prefix === "undefined") {
       if (this.guild) prefix = this.guild.commandPrefix;
@@ -66,14 +66,14 @@ export class FreyaMessage extends Message {
   }
   anyUsage(
     command: string,
-    prefix: string,
-    user: User = this.Client.user
+    prefix: string | null | undefined,
+    user: User | null = this.Client.user
   ): string {
     if (typeof prefix === "undefined") {
       if (this.guild) prefix = this.guild.commandPrefix;
       else prefix = this.Client.commandPrefix;
     }
-    return Command.usage(command, prefix, user);
+    return Command.usage(command, prefix!, user);
   }
 
   /**

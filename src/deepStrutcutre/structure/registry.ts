@@ -356,13 +356,13 @@ export class FreyaRegistry {
 	 * @param {Command|Function} command - New command
 	 * @param {Command} oldCommand - Old command
 	 */
-	reregisterCommand(command: { new(arg0: FreyaClient): any; default: new (arg0: FreyaClient) => any; name: any; groupID: any; memberName: any; unknown: any; group: { commands: { set: (arg0: any, arg1: any) => void; }; }; }, oldCommand: this) {
+	reregisterCommand(command: Command, oldCommand: Command) {
 		/* eslint-disable new-cap */
-		if (isConstructor(command, Command)) command = new command(this.Client);
+		if (isConstructor(command, Command)) command = new Command(this.Client);
 		else if (isConstructor(command.default, Command)) command = new command.default(this.Client);
 		/* eslint-enable new-cap */
 
-		if (command.name !== oldCommand.name) throw new Error('Command name cannot change.');
+		if (command.Name !== oldCommand.name) throw new Error('Command name cannot change.');
 		if (command.groupID !== oldCommand.groupID) throw new Error('Command group cannot change.');
 		if (command.memberName !== oldCommand.memberName) throw new Error('Command memberName cannot change.');
 		if (command.unknown && this.UnknownCommand !== oldCommand) {
@@ -389,7 +389,7 @@ export class FreyaRegistry {
 	 * Unregisters a command
 	 * @param {Command} command - Command to unregister
 	 */
-	unregisterCommand(command: this) {
+	unregisterCommand(command: Command) {
 		this.Commands.delete(command.name);
 		command.Groups.commands.delete(command.name);
 		if (this.UnknownCommand === command) this.UnknownCommand = null;
@@ -438,7 +438,7 @@ export class FreyaRegistry {
 	 * @param {CommandGroupResolvable} group - The group to resolve
 	 * @return {CommandGroup} The resolved CommandGroup
 	 */
-	resolveGroup(group: CommandGroup | string) {
+	resolveGroup(group: CommandGroup | string): CommandGroup {
 		if (group instanceof CommandGroup) return group;
 		if (typeof group === 'string') {
 			const groups = this.findGroups(group, true);

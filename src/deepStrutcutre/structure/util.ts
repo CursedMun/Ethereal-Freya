@@ -1,16 +1,16 @@
 
 const isConstructorProxyHandler = { construct() { return Object.prototype; } };
 
-export function escapeRegex(str) {
+export function escapeRegex(str: string) {
 	return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&');
 }
 
-export function disambiguation(items, label, property = 'name') {
+export function disambiguation(items: any[], label: string, property = 'name') {
 	const itemList = items.map(item => `"${(property ? item[property] : item).replace(/ /g, '\xa0')}"`).join(',   ');
 	return `Multiple ${label} found, please be more specific: ${itemList}`;
 }
 
-export function isConstructor(func, _class) {
+export function isConstructor(func: any, _class: any) {
 	try {
 		// eslint-disable-next-line no-new
 		new new Proxy(func, isConstructorProxyHandler)();
@@ -21,7 +21,7 @@ export function isConstructor(func, _class) {
 	}
 }
 
-export function paginate(items, page = 1, pageLength = 10) {
+export function paginate(items: [], page = 1, pageLength = 10) {
 	const maxPage = Math.ceil(items.length / pageLength);
 	if (page < 1) page = 1;
 	if (page > maxPage) page = maxPage;
@@ -47,7 +47,7 @@ export const permissions: { [key: string]: string } = {
 	MANAGE_NICKNAMES: 'Manage nicknames',
 	MANAGE_EMOJIS: 'Manage emojis',
 	MANAGE_WEBHOOKS: 'Manage webhooks',
-	VIEW_CHANNEL: 'Read text channels and see voice channels',
+	VIEW_CHANNEL: 'View channels',
 	SEND_MESSAGES: 'Send messages',
 	SEND_TTS_MESSAGES: 'Send TTS messages',
 	MANAGE_MESSAGES: 'Manage messages',
@@ -62,5 +62,8 @@ export const permissions: { [key: string]: string } = {
 	MUTE_MEMBERS: 'Mute members',
 	DEAFEN_MEMBERS: 'Deafen members',
 	MOVE_MEMBERS: 'Move members',
-	USE_VAD: 'Use voice activity'
+	USE_VAD: 'Use voice activity',
+	PRIORITY_SPEAKER: 'Priority speaker',
+	VIEW_GUILD_INSIGHTS: 'View server insights',
+	STREAM: 'Video'
 };

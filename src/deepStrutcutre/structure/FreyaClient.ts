@@ -11,13 +11,13 @@ export class FreyaClient extends Client {
 	public Registry: FreyaRegistry
 	public Dispatcher: FreyaDispatcher
 	public Provider: SettingProvider
+
 	settings: any;
 	_commandPrefix: null;
 	dispatcher: any;
 	Options: FreyaClientOptions
 	constructor(options: FreyaClientOptions) {
 		FreyaClient.ValidateInfo(options);
-
 		super(options);
 		this.Options = options;
 		this.commandPrefix

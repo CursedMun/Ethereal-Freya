@@ -17,7 +17,7 @@ export class FreyaDispatcher {
 	public Inhibitors: Set<Function>
 	private _commandPatterns: Object
 	private _results: Map<string, FreyaMessage>
-	private _awaiting: Set<string>
+	public _awaiting: Set<string>
 	constructor(client: FreyaClient, registry: FreyaRegistry) {
 		this.Client = client;
 		this.Registry = registry;

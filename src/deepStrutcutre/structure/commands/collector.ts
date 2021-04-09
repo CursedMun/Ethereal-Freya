@@ -1,11 +1,12 @@
+import { Message } from "discord.js";
 import { FreyaMessage } from "../extensions/message";
 import { FreyaClient } from "../FreyaClient";
-import { ArgumentCollectorResult, ArgumentInfo } from "../Interfaces/Interfaces";
+import { ArgumentCollectorResult, ArgumentInfo, ArgumentResult } from "../Interfaces/Interfaces";
 import { Argument } from "./argument";
 
 export class ArgumentCollector {
     private Client: FreyaClient;
-    args: ArgumentInfo[];
+    args: Argument[];
     promptLimit: number;
     constructor(client: FreyaClient, args: ArgumentInfo[], promptLimit: number = Infinity) {
         if (!client) throw new TypeError('Collector client must be specified.');
@@ -28,7 +29,7 @@ export class ArgumentCollector {
     async obtain(msg: FreyaMessage, provided: Array<any> = [], promptLimit: number = this.promptLimit): Promise<ArgumentCollectorResult> {
         this.Client.Dispatcher._awaiting.add(msg.author.id + msg.channel.id);
         const values = {};
-        const results = [];
+        const results: ArgumentResult[] = [];
 
         try {
             for (let i = 0; i < this.args.length; i++) {
@@ -42,12 +43,14 @@ export class ArgumentCollector {
                     return {
                         values: null,
                         cancelled: result.cancelled,
-                        prompts: [].concat(...results.map(res => res.prompts)),
-                        answers: [].concat(...results.map(res => res.answers))
+                        prompts: ([] as any).concat(...results.map(res => res.prompts)),
+                        answers: ([] as any).concat(...results.map(res => res.answers))
                     };
                 }
 
-                values[arg.key] = result.value;
+                values = {
+                    [arg.key]: result.value
+                }
                 /* eslint-enable no-await-in-loop */
             }
         } catch (err) {
@@ -59,8 +62,8 @@ export class ArgumentCollector {
         return {
             values,
             cancelled: undefined,
-            prompts: [].concat(...results.map(res => res.prompts)),
-            answers: [].concat(...results.map(res => res.answers))
+            prompts: ([] as any).concat(...results.map(res => res.prompts)),
+            answers: ([] as any).concat(...results.map(res => res.answers))
         };
     }
 }

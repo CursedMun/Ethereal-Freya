@@ -1,13 +1,14 @@
 import { Guild, Structures, User } from "discord.js";
 import { FreyaClient } from "../FreyaClient";
+import { CommandGroupResolvable, CommandResolvable } from "../Interfaces/Interfaces";
 import { GuildSettingsHelper } from "../providers/helper";
 
 export class FreyaGuild extends Guild {
   Settings: GuildSettingsHelper;
-  private _commandPrefix: string;
-  private _commandsEnabled: { [key: string]: boolean };
-  private _groupsEnabled: { [key: string]: boolean };
+  private _commandPrefix: string | null;
   readonly Client: FreyaClient;
+  _commandsEnabled: any;
+  _groupsEnabled: any;
   constructor(Client: FreyaClient, args: object[]) {
     super(Client, args);
     this.Client = Client;
@@ -15,7 +16,7 @@ export class FreyaGuild extends Guild {
     this._commandPrefix = null;
   }
   get commandPrefix() {
-    if (this._commandPrefix === null) return this.Client.commandPrefix;
+    if (this._commandPrefix === null) return this.Client.commandPrefix!;
     return this._commandPrefix;
   }
 
@@ -31,7 +32,7 @@ export class FreyaGuild extends Guild {
       throw new TypeError("Enabled must not be undefined.");
     enabled = Boolean(enabled);
     if (!this._commandsEnabled) this._commandsEnabled = {};
-    this._commandsEnabled[command.name] = enabled;
+    this._commandsEnabled[command.Name] = enabled;
     this.Client.emit("commandStatusChange", this, command, enabled);
   }
 
@@ -40,11 +41,11 @@ export class FreyaGuild extends Guild {
     if (command.guarded) return true;
     if (
       !this._commandsEnabled ||
-      typeof this._commandsEnabled[command.name] === "undefined"
+      typeof this._commandsEnabled[command.Name] === "undefined"
     ) {
       return command._globalEnabled;
     }
-    return this._commandsEnabled[command.name];
+    return this._commandsEnabled[command.Name];
   }
 
   setGroupEnabled(group: CommandGroupResolvable, enabled: boolean) {
@@ -75,7 +76,7 @@ export class FreyaGuild extends Guild {
    * @param {User} [user=this.Client.user] - User to use for the mention command format
    * @return {string}
    */
-  commandUsage(command: string, user: User = this.Client.user): string {
+  commandUsage(command: string, user: User | null = this.Client.user): string {
     return Command.usage(command, this.commandPrefix, user);
   }
 }

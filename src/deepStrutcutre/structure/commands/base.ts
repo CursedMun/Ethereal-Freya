@@ -3,10 +3,11 @@ import { GuildResolvable, Message, PermissionResolvable, User, Util } from 'disc
 import 'path';
 import { FreyaMessage } from '../extensions/message';
 import { FreyaClient } from '../FreyaClient';
-import { CommandInfo, ThrottlingOptions } from '../Interfaces/Interfaces';
+import { ArgumentCollectorResult, CommandInfo, ThrottlingOptions } from '../Interfaces/Interfaces';
 import { permissions } from '../util';
 import { ArgumentCollector } from './collector';
 import path = require('path');
+import { CommandGroup } from './group';
 
 
 /** A command that can be run in a client */
@@ -27,7 +28,7 @@ export class Command {
     Nsfw: boolean;
     DefaultHandling?: boolean;
     Throttling?: ThrottlingOptions;
-    ArgsCollector: ArgumentCollector;
+    ArgsCollector: ArgumentCollector | null;
     ArgsType: string;
     ArgsCount: number;
     ArgsSingleQuotes?: boolean;
@@ -50,7 +51,7 @@ export class Command {
             }
         }
         this.GroupID = info.group;
-        this.Group = null;
+        this.Group = undefined;
         this.MemberName = info.memberName;
         this.Description = info.description;
         this.Format = info.format;
@@ -84,7 +85,7 @@ export class Command {
         this._throttles = new Map();
     }
 
-    public hasPermission(message: FreyaMessage, ownerOverride: boolean = true): boolean | string {
+    public hasPermission(message: Message, ownerOverride: boolean = true): boolean | string {
         if (!this.OwnerOnly && !this.UserPermissions) return true;
         if (ownerOverride && this.Client.isOwner(message.author)) return true;
 
@@ -185,29 +186,29 @@ export class Command {
             this.Client.emit('commandStatusChange', null, this, enabled);
             return;
         }
-        guild = this.Client.guilds.resolve(guild);
-        guild.setCommandEnabled(this, enabled);
+        guild = this.Client.guilds.resolve(guild) ;
+        guild!.setCommandEnabled(this, enabled);
     }
 
     public isEnabledIn(guild: GuildResolvable | null, bypassGroup: boolean): boolean {
         if (this.guarded) return true;
-        if (!guild) return this.Group._globalEnabled && this._globalEnabled;
+        if (!guild) return this.Group!._globalEnabled && this._globalEnabled;
         guild = this.Client.guilds.resolve(guild);
-        return (bypassGroup || guild.isGroupEnabled(this.Group)) && guild.isCommandEnabled(this);
+        return (bypassGroup || guild!.isGroupEnabled(this.Group)) && guild!.isCommandEnabled(this);
     }
 
     public isUsable(message: Message | null = null): boolean {
         if (!message) return this._globalEnabled;
         if (this.GuildOnly && message && !message.guild) return false;
         const hasPermission = this.hasPermission(message);
-        return this.isEnabledIn(message.guild) && hasPermission && typeof hasPermission !== 'string';
+        return this.isEnabledIn(message.guild,false) && typeof hasPermission !== 'string' && hasPermission;
     }
 
     usage(argString: string, prefix: string | undefined | null = this.Client.commandPrefix, user: User | null = this.Client.user): string {
         return this.usage(`${this.Name}${argString ? ` ${argString}` : ''}`, prefix, user);
     }
     reload() {
-        let cmdPath, cached, newCmd;
+        let cmdPath: string = "", cached, newCmd;
         try {
             cmdPath = this.Client.Registry.resolveCommandPath(this.GroupID, this.MemberName);
             cached = require.cache[cmdPath];
@@ -235,7 +236,7 @@ export class Command {
         this.Client.Registry.unregisterCommand(this);
     }
 
-    static usage(command: string, prefix: string = "", user?: User): string {
+    static usage(command: string, prefix: string = "", user: User | null): string {
         const nbcmd = command.replace(/ /g, '\xa0');
         if (!prefix && !user) return `\`${nbcmd}\``;
 

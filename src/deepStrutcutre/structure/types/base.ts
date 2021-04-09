@@ -1,3 +1,4 @@
+import { Message } from "discord.js";
 import { Argument } from "../commands/argument";
 import { FreyaMessage } from "../extensions/message";
 import { FreyaClient } from "../FreyaClient";
@@ -13,15 +14,15 @@ export default class ArgumentType {
     this.Client =client;
 		this.id = id;
 	}
-	validate(val:string, originalMsg:FreyaMessage, arg:Argument, currentMsg:FreyaMessage = originalMsg):boolean|string|Promise<boolean|string> { // eslint-disable-line no-unused-vars
+	validate(val:string, originalMsg:FreyaMessage | Message, arg:Argument, currentMsg:FreyaMessage | Message = originalMsg):boolean|string|Promise<boolean|string> { // eslint-disable-line no-unused-vars
 		throw new Error(`${this.constructor.name} doesn't have a validate() method.`);
 	}
 
-	parse(val:string, originalMsg:FreyaMessage, arg:Argument, currentMsg: FreyaMessage = originalMsg): any|Promise<any> { 
+	parse(val:string, originalMsg:FreyaMessage | Message, arg:Argument, currentMsg: FreyaMessage | Message = originalMsg): any|Promise<any> { 
 		throw new Error(`${this.constructor.name} doesn't have a parse() method.`);
 	}
 
-	isEmpty(val: string, originalMsg: FreyaMessage, arg:Argument, currentMsg:FreyaMessage = originalMsg):boolean {
+	isEmpty(val: string, originalMsg: FreyaMessage | Message, arg:Argument, currentMsg:FreyaMessage | Message = originalMsg):boolean {
 		if(Array.isArray(val)) return val.length === 0;
 		return !val;
 	}
