@@ -1,11 +1,13 @@
 
+import { oneLine } from "common-tags";
+import { Message } from "discord.js";
 import { FreyaMessage } from "../../extensions/message";
 import { FreyaClient } from "../../FreyaClient";
 import { Command } from '../base';
 
 
 module.exports = class EnableCommandCommand extends Command {
-	constructor(Client) {
+	constructor(Client: FreyaClient) {
 		super(Client, {
 			name: 'enable',
 			aliases: ['enable-command', 'cmd-on', 'command-on'],
@@ -30,12 +32,12 @@ module.exports = class EnableCommandCommand extends Command {
 		});
 	}
 
-	hasPermission(msg) {
+	hasPermission(msg: FreyaMessage) {
 		if(!msg.guild) return this.Client.isOwner(msg.author);
-		return msg.member.hasPermission('ADMINISTRATOR') || this.Client.isOwner(msg.author);
+		return msg.member?.hasPermission('ADMINISTRATOR') || this.Client.isOwner(msg.author);
 	}
 
-	run(msg, args) {
+	run(msg: FreyaMessage, args: any) {
 		const group = args.cmdOrGrp.group;
 		if(args.cmdOrGrp.isEnabledIn(msg.guild, true)) {
 			return msg.reply(

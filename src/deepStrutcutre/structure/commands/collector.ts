@@ -1,5 +1,5 @@
 import { Message } from "discord.js";
-import { FreyaMessage } from "../extensions/message";
+import message, { FreyaMessage } from "../extensions/message";
 import { FreyaClient } from "../FreyaClient";
 import { ArgumentCollectorResult, ArgumentInfo, ArgumentResult } from "../Interfaces/Interfaces";
 import { Argument } from "./argument";
@@ -28,9 +28,8 @@ export class ArgumentCollector {
 
     async obtain(msg: FreyaMessage, provided: Array<any> = [], promptLimit: number = this.promptLimit): Promise<ArgumentCollectorResult> {
         this.Client.Dispatcher._awaiting.add(msg.author.id + msg.channel.id);
-        const values = {};
+        let values = {};
         const results: ArgumentResult[] = [];
-
         try {
             for (let i = 0; i < this.args.length; i++) {
                 /* eslint-disable no-await-in-loop */
@@ -49,6 +48,7 @@ export class ArgumentCollector {
                 }
 
                 values = {
+                    ...values,
                     [arg.key]: result.value
                 }
                 /* eslint-enable no-await-in-loop */

@@ -1,11 +1,14 @@
 
+import { oneLine } from "common-tags";
+import { Message } from "discord.js";
 import { FreyaMessage } from "../../extensions/message";
 import { FreyaClient } from "../../FreyaClient";
+import { Argument } from "../argument";
 import { Command } from '../base';
 
 export class DisableCommandCommand extends Command {
-	constructor(client: FreyaClient) {
-		super(client, {
+	constructor(Client: FreyaClient) {
+		super(Client, {
 			name: 'disable',
 			aliases: ['disable-command', 'cmd-off', 'command-off'],
 			group: 'commands',
@@ -17,7 +20,7 @@ export class DisableCommandCommand extends Command {
 			`,
 			examples: ['disable util', 'disable Utility', 'disable prefix'],
 			guarded: true,
-
+			 
 			args: [
 				{
 					key: 'cmdOrGrp',

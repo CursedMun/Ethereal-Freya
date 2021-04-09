@@ -1,4 +1,5 @@
 import { Guild, Structures, User } from "discord.js";
+import { Command } from "../commands/base";
 import { FreyaClient } from "../FreyaClient";
 import { CommandGroupResolvable, CommandResolvable } from "../Interfaces/Interfaces";
 import { GuildSettingsHelper } from "../providers/helper";

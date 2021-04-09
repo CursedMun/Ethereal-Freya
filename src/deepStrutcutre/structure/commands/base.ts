@@ -85,7 +85,7 @@ export class Command {
         this._throttles = new Map();
     }
 
-    public hasPermission(message: Message, ownerOverride: boolean = true): boolean | string {
+    public hasPermission(message: FreyaMessage, ownerOverride: boolean = true): boolean | string {
         if (!this.OwnerOnly && !this.UserPermissions) return true;
         if (ownerOverride && this.Client.isOwner(message.author)) return true;
 
@@ -197,7 +197,7 @@ export class Command {
         return (bypassGroup || guild!.isGroupEnabled(this.Group)) && guild!.isCommandEnabled(this);
     }
 
-    public isUsable(message: Message | null = null): boolean {
+    public isUsable(message: FreyaMessage | null = null): boolean {
         if (!message) return this._globalEnabled;
         if (this.GuildOnly && message && !message.guild) return false;
         const hasPermission = this.hasPermission(message);

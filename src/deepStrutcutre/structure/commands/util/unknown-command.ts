@@ -1,8 +1,11 @@
+import { FreyaMessage } from "../../extensions/message";
+import { FreyaClient } from "../../FreyaClient";
+
 const Command = require('../base');
 
 module.exports = class UnknownCommandCommand extends Command {
-	constructor(client) {
-		super(client, {
+	constructor(Client: FreyaClient) {
+		super(Client, {
 			name: 'unknown-command',
 			group: 'util',
 			memberName: 'unknown-command',
@@ -13,7 +16,7 @@ module.exports = class UnknownCommandCommand extends Command {
 		});
 	}
 
-	run(msg) {
+	run(msg:FreyaMessage) {
 		return msg.reply(
 			`Unknown command. Use ${msg.anyUsage(
 				'help',

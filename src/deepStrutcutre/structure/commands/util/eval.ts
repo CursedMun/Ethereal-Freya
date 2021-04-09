@@ -1,6 +1,10 @@
+import { inspect } from 'util';
 import { FreyaMessage } from '../../extensions/message';
 import { FreyaClient } from '../../FreyaClient';
+import { escapeRegex } from '../../util';
 import { Command } from '../base';
+import { Util} from 'discord.js'
+import { stripIndents } from 'common-tags';
 
 
 const nl = '!!NL!!';
@@ -31,22 +35,22 @@ module.exports = class EvalCommand extends Command {
 		Object.defineProperty(this, '_sensitivePattern', { value: null, configurable: true });
 	}
 
-	run(msg: FreyaMessage, args) {
-		const message = msg;
-		const Client = msg.Client;
-		const lastResult = this.lastResult;
-		const doReply = (val: any) => {
-			if(val instanceof Error) {
-				msg.reply(`Callback error: \`${val}\``);
-			} else {
-				const result = this.makeResultMessages(val, process.hrtime(this.hrStart));
-				if(Array.isArray(result)) {
-					for(const item of result) msg.reply(item);
-				} else {
-					msg.reply(result);
-				}
-			}
-		};
+	run(msg: FreyaMessage, args: any): any {
+		// const message = msg;
+		// const Client = msg.Client;
+		// const lastResult = this.lastResult;
+		// const doReply = (val: any) => {
+		// 	if(val instanceof Error) {
+		// 		msg.reply(`Callback error: \`${val}\``);
+		// 	} else {
+		// 		const result = this.makeResultMessages(val, process.hrtime(this.hrStart));
+		// 		if(Array.isArray(result)) {
+		// 			for(const item of result) msg.reply(item);
+		// 		} else {
+		// 			msg.reply(result);
+		// 		}
+		// 	}
+		// };
 		if(args.script.startsWith('```') && args.script.endsWith('```')) {
 			args.script = args.script.replace(/(^.*?\s)|(\n.*$)/g, '');
 		}
@@ -62,7 +66,7 @@ module.exports = class EvalCommand extends Command {
 		}
 
 		// Prepare for callback time and respond
-		this.hrStart = process.hrtime();
+		var hrStart = process.hrtime();
 		const result = this.makeResultMessages(this.lastResult, hrDiff, args.script);
 		if(Array.isArray(result)) {
 			return result.map(item => msg.reply(item));
@@ -70,12 +74,9 @@ module.exports = class EvalCommand extends Command {
 			return msg.reply(result);
 		}
 	}
-	hrStart(hrStart: any): any {
-		throw new Error('Method not implemented.');
-	}
 
 	makeResultMessages(result: null, hrDiff: number[], input = null) {
-		const inspected = util.inspect(result, { depth: 0 })
+		const inspected = inspect(result, { depth: 0 })
 			.replace(nlPattern, '\n')
 			.replace(this.sensitivePattern, '--snip--');
 		const split = inspected.split('\n');
@@ -87,14 +88,14 @@ module.exports = class EvalCommand extends Command {
 		const prepend = `\`\`\`javascript\n${prependPart}\n`;
 		const append = `\n${appendPart}\n\`\`\``;
 		if(input) {
-			return discord.splitMessage(tags.stripIndents`
+			return Util.splitMessage(stripIndents`
 				*Executed in ${hrDiff[0] > 0 ? `${hrDiff[0]}s ` : ''}${hrDiff[1] / 1000000}ms.*
 				\`\`\`javascript
 				${inspected}
 				\`\`\`
 			`, { maxLength: 1900, prepend, append });
 		} else {
-			return discord.splitMessage(tags.stripIndents`
+			return Util.splitMessage(stripIndents`
 				*Callback executed after ${hrDiff[0] > 0 ? `${hrDiff[0]}s ` : ''}${hrDiff[1] / 1000000}ms.*
 				\`\`\`javascript
 				${inspected}

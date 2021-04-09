@@ -1,11 +1,12 @@
 
+import { oneLine } from "common-tags";
 import { FreyaMessage } from "../../extensions/message";
 import { FreyaClient } from "../../FreyaClient";
 import { Command } from '../base';
 
 
 module.exports = class ReloadCommandCommand extends Command {
-	constructor(Client) {
+	constructor(Client: FreyaClient) {
 		super(Client, {
 			name: 'reload',
 			aliases: ['reload-command'],
@@ -32,7 +33,7 @@ module.exports = class ReloadCommandCommand extends Command {
 		});
 	}
 
-	async run(msg, args) {
+	async run(msg: FreyaMessage, args: any) {
 		const { cmdOrGrp } = args;
 		const isCmd = Boolean(cmdOrGrp.groupID);
 		cmdOrGrp.reload();

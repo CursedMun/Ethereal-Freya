@@ -1,4 +1,4 @@
-import { Collection } from "discord.js";
+import { Collection, Message } from "discord.js";
 import path = require("path");
 import { Command } from './commands/base';
 import { CommandGroup } from "./commands/group";
@@ -454,11 +454,11 @@ export class FreyaRegistry {
 	 * @param {Message} [message] - The message to check usability against
 	 * @return {Command[]} All commands that are found
 	 */
-	findCommands(searchString: string, exact = false, message = null): Command[] {
+	findCommands(searchString: string, exact = false, message: FreyaMessage | null = null): Command[] {
 		if (!searchString) {
 			return message ?
 				Array.from(this.Commands.filter(cmd => cmd.isUsable(message)).values()) :
-				Array.from(this.Commands);
+				Array.from(this.Commands.array());
 		}
 
 		// Find all matches

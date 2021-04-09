@@ -1,4 +1,5 @@
 
+import { oneLine } from "common-tags";
 import { FreyaMessage } from "../../extensions/message";
 import { FreyaClient } from "../../FreyaClient";
 import { Command } from '../base';
@@ -30,7 +31,7 @@ module.exports = class UnloadCommandCommand extends Command {
 		});
 	}
 
-	async run(msg: FreyaMessage, args) {
+	async run(msg: FreyaMessage, args:any) {
 		args.command.unload();
 
 		if(this.Client.shard) {
